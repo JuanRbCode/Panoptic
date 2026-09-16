@@ -28,7 +28,7 @@ export default function Register({ switchToLogin }) {
   return (
     <div className="min-h-screen bg-[#050811] text-[#c0d0e0] flex items-center justify-center font-mono p-4">
       <div className="w-full max-w-md bg-[#0A0F1D] border border-[#00e5ff]/40 p-8 rounded-xl shadow-[0_0_20px_rgba(0,229,255,0.05)]">
-        <h2 className="text-xl font-bold text-[#00E5FF] mb-2 tracking-widest text-center">// NUEVO OPERADOR</h2>
+        <h2 className="text-xl font-bold text-[#00E5FF] mb-2 tracking-widest text-center">NUEVO OPERADOR</h2>
         <p className="text-xs text-gray-500 text-center mb-6">Crea tu cuenta en Panoptic</p>
 
         {error && <div className="mb-4 p-2 bg-red-950/50 border border-red-500/40 text-red-400 text-xs rounded">{error}</div>}
