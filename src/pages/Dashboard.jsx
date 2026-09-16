@@ -135,7 +135,7 @@ export default function Dashboard({ user, onLogout }) {
         <div className="bg-[#0A0F1D] border border-cyan-500/30 p-4 rounded-lg flex flex-wrap justify-between items-center gap-4">
           <div className="flex items-center space-x-3">
             <span className="text-xs text-cyan-400 font-bold">
-              // SALA ACTIVA:
+              SALA ACTIVA:
             </span>
             <select
               className="bg-black border border-cyan-500/40 text-xs text-white p-2 rounded outline-none"
@@ -179,7 +179,7 @@ export default function Dashboard({ user, onLogout }) {
         {/* Grilla de Dispositivos Conectados a la Sala Seleccionada */}
         <section className="flex-1">
           <h2 className="text-xs font-bold text-[#00E5FF] mb-4 tracking-widest uppercase">
-            // NODOS MÓVILES EN SALA:{" "}
+            NODOS MÓVILES EN SALA:{" "}
             {selectedRoom ? selectedRoom.nombre : "NINGUNA SELECCIONADA"} (
             {filteredDevices.length})
           </h2>
@@ -228,7 +228,7 @@ export default function Dashboard({ user, onLogout }) {
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
           <div className="bg-[#0A0F1D] border border-cyan-500/40 p-6 rounded-xl w-full max-w-md space-y-4">
             <h3 className="text-sm font-bold text-[#00E5FF] tracking-wider">
-              // CREAR NUEVA SALA
+              CREAR NUEVA SALA
             </h3>
             <form onSubmit={handleCreateRoom} className="space-y-3 text-xs">
               <div>

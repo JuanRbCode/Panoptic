@@ -6,7 +6,7 @@ export default function Header({ engineStatus, deviceCount }) {
       <div className="flex items-center space-x-3">
         <div className="h-3 w-3 animate-pulse rounded-full bg-cyan-400 shadow-[0_0_10px_#00E5FF]"></div>
         <h1 className="font-mono text-lg font-bold tracking-widest text-cyan-400">
-          Panoptic <span className="text-xs text-cyan-600"> // COMMAND CENTER</span>
+          Panoptic <span className="text-xs text-cyan-600"> COMMAND CENTER</span>
         </h1>
       </div>
 
