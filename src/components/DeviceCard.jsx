@@ -6,35 +6,33 @@ export default function DeviceCard({ device, frameSrc, onAction, onTalkToggle })
   const [isMicListening, setIsMicListening] = useState(false); // Micrófono del celular (escuchar audio remoto)
   const [isTalkingToPhone, setIsTalkingToPhone] = useState(false); // Micrófono de tu PC (hablar hacia el celular)
 
+  // Identificador completo del socket para que los comandos lleguen correctamente
+  const deviceTargetId = device.socketId || device.id;
+
   // Control de Cámara (Independiente por lente)
   const handleToggleCamera = (lensType) => {
     setActiveLens(lensType);
-    if (!isCamActive) {
-      setIsCamActive(true);
-      onAction(device.id, 'start_camera', { lens: lensType });
-    } else {
-      // Si cambia de lente o la apaga
-      onAction(device.id, 'start_camera', { lens: lensType });
-    }
+    setIsCamActive(true);
+    onAction(deviceTargetId, 'start_camera', { lens: lensType });
   };
 
   const handleStopCamera = () => {
     setIsCamActive(false);
-    onAction(device.id, 'stop_camera', { lens: activeLens });
+    onAction(deviceTargetId, 'stop_camera', { lens: activeLens });
   };
 
   // Control de Micrófono del Celular (Escuchar el entorno del móvil)
   const handleToggleMicListening = () => {
     const newState = !isMicListening;
     setIsMicListening(newState);
-    onAction(device.id, newState ? 'start_mic' : 'stop_mic');
+    onAction(deviceTargetId, newState ? 'start_mic' : 'stop_mic');
   };
 
   // Control de Voz Bidireccional de la PC (Hablar al celular)
   const handleToggleTalking = () => {
     const newState = !isTalkingToPhone;
     setIsTalkingToPhone(newState);
-    onTalkToggle(device.id, newState);
+    onTalkToggle(deviceTargetId, newState);
   };
 
   return (
@@ -46,8 +44,9 @@ export default function DeviceCard({ device, frameSrc, onAction, onTalkToggle })
           <h3 className="text-xs font-bold text-[#00E5FF] tracking-wider">{device.name}</h3>
           <span className="text-[9px] text-gray-500">IP: {device.ip || 'Local'}</span>
         </div>
-        <span className="text-[10px] bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-[#00e5ff]/30">
-          ID: {device.id.substring(0, 6)}
+        {/* Mostramos solo un pedazo visualmente en pantalla, pero guardamos el ID completo para los eventos */}
+        <span className="text-[10px] bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-[#00e5ff]/30" title={deviceTargetId}>
+          ID: {deviceTargetId ? `${deviceTargetId.substring(0, 6)}...` : 'N/A'}
         </span>
       </div>
 
@@ -84,7 +83,7 @@ export default function DeviceCard({ device, frameSrc, onAction, onTalkToggle })
           onClick={() => handleToggleCamera('front')}
           className={`p-2 rounded border transition font-bold ${
             isCamActive && activeLens === 'front'
-              ? 'bg-[#00E5FF] text-black border-[#00e5ff] shadow-[0_0_10px_#00e5ff]'
+              ? 'bg-[#00E5FF] text-black border-[#00E5FF] shadow-[0_0_10px_#00e5ff]'
               : 'bg-black text-[#00E5FF] border-[#00e5ff]/30 hover:bg-[#00e5ff]/10'
           }`}
         >
