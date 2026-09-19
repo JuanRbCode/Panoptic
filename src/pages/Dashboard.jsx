@@ -25,16 +25,19 @@ export default function Dashboard({ user, onLogout }) {
 
   const addLog = (msg) => setLogs((prev) => [...prev, `${msg}`]);
 
-  // Cargar salas del usuario (puedes crear una ruta GET /api/rooms en tu server si gustas, o simularlas por ahora)
-  // Cargar salas desde la base de datos al montar el componente / recargar
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    // 1. Obtener las salas guardadas en MySQL mediante HTTP
+    // 1. Obtener las salas desde MySQL enviando el Token Bearer de autorización
     const fetchRooms = async () => {
       try {
         const res = await fetch(
           "https://panoptic-server-production.up.railway.app/api/rooms",
+          {
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          }
         );
         const data = await res.json();
         if (data.success) {
@@ -47,12 +50,12 @@ export default function Dashboard({ user, onLogout }) {
 
     fetchRooms();
 
-    // 2. Conexión de WebSockets
+    // 2. Conexión de WebSockets con Autenticación integrada
     socketService.connect({
       onConnect: (id) => {
         setEngineStatus("ONLINE [CONECTADO]");
         addLog(`Conectado al servidor de control (ID: ${id})`);
-        socketService.socket.emit("authenticate_panel", token);
+        socketService.authenticatePanel(token);
       },
       onDisconnect: () => {
         setEngineStatus("OFFLINE [DESCONECTADO]");
@@ -80,13 +83,19 @@ export default function Dashboard({ user, onLogout }) {
 
   const handleCreateRoom = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem("token");
+
     try {
       const res = await fetch(
         "https://panoptic-server-production.up.railway.app/api/rooms/create",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...newRoom, owner_id: user.id }),
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}` // Autorización requerida por el backend
+          },
+          // Se remueve owner_id del cuerpo ya que el servidor lo extrae de forma segura del token JWT
+          body: JSON.stringify(newRoom),
         },
       );
       const data = await res.json();
@@ -95,9 +104,11 @@ export default function Dashboard({ user, onLogout }) {
         setRooms([...rooms, { ...newRoom }]);
         setShowCreateModal(false);
         setNewRoom({ nombre: "", codigo: "", contrasena: "" });
+      } else {
+        addLog(`[Error] ${data.message || 'No se pudo crear la sala.'}`);
       }
     } catch (err) {
-      addLog(`[Error] No se pudo crear la sala.`);
+      addLog(`[Error] No se pudo conectar con el servidor para crear la sala.`);
     }
   };
 
@@ -118,7 +129,6 @@ export default function Dashboard({ user, onLogout }) {
     }
   };
 
-  // Filtrar dispositivos que pertenecen únicamente a la sala seleccionada
   const filteredDevices = selectedRoom
     ? devices.filter((dev) => dev.roomCode === selectedRoom.codigo)
     : [];
@@ -144,9 +154,8 @@ export default function Dashboard({ user, onLogout }) {
                 const found = rooms.find((r) => r.codigo === roomCode);
                 setSelectedRoom(found || null);
 
-                // NUEVO: Le avisamos al servidor que este panel web se une a la sala
                 if (roomCode) {
-                  socketService.socket.emit("join_room_panel", roomCode);
+                  socketService.joinRoomPanel(roomCode);
                 }
               }}
               value={selectedRoom ? selectedRoom.codigo : ""}

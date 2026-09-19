@@ -18,17 +18,43 @@ class SocketService {
             callbacks.onDisconnect && callbacks.onDisconnect();
         });
 
+        // Listeners adicionales de autenticación y errores
+        this.socket.on("auth_success", (data) => {
+            callbacks.onAuthSuccess && callbacks.onAuthSuccess(data);
+        });
+
+        this.socket.on("auth_error", (data) => {
+            callbacks.onAuthError && callbacks.onAuthError(data);
+        });
+
         this.socket.on("update_devices", (devices) => {
             callbacks.onUpdateDevices && callbacks.onUpdateDevices(devices);
         });
 
         this.socket.on("camera_frame", (data) => {
-            callbacks.onCameraFrame && callbacks.onCameraFrame(data);
+            if (typeof data === 'object' && data.status === 'stopped') {
+                callbacks.onCameraFrame && callbacks.onCameraFrame({ deviceId: data.deviceId, frame: null });
+            } else {
+                callbacks.onCameraFrame && callbacks.onCameraFrame(data);
+            }
         });
 
         this.socket.on("audio_chunk", (data) => {
             callbacks.onAudioChunk && callbacks.onAudioChunk(data);
         });
+    }
+
+    // Métodos para autenticar el panel y unirse a la sala vía Socket.io
+    authenticatePanel(token) {
+        if (this.socket) {
+            this.socket.emit("authenticate_panel", token);
+        }
+    }
+
+    joinRoomPanel(roomCode) {
+        if (this.socket) {
+            this.socket.emit("join_room_panel", roomCode);
+        }
     }
 
     sendCommand(targetId, action, extraData = {}) {
@@ -48,6 +74,5 @@ class SocketService {
     }
 }
 
-// Solución al error de ESLint: asignamos a una variable antes de exportar
 const socketService = new SocketService();
 export default socketService;
