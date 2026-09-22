@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { audioHandler } from '../utils/audioPlayer'; // Ajusta la ruta según dónde tengas guardado tu audioHandler
-import socketService from '../utils/socketService';     // Ajusta la ruta según dónde tengas tu socketService
+import socketService from '../service/socketService';   // Ajusta la ruta según dónde tengas tu socketService
 
 export default function DeviceCard({ device, frameSrc, onAction }) {
   const [activeLens, setActiveLens] = useState('back'); // 'back' o 'front'
