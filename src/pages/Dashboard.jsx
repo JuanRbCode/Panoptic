@@ -120,11 +120,20 @@ export default function Dashboard({ user, onLogout }) {
   const handleTalkToggle = (targetId, isTalking) => {
     if (isTalking) {
       addLog(`Transmitiendo voz hacia el nodo: ${targetId}`);
+      
+      // 1. LE AVISAMOS AL CELULAR QUE COMIENZA LA TRANSMISIÓN DE VOZ (Para que abra su reproductor)
+      socketService.sendCommand(targetId, 'start_speaker'); 
+
+      // 2. COMENZAMOS A ENVIAR LOS CHUNKS DESDE LA PC
       audioHandler.startTalking(targetId, (id, chunk) => {
         socketService.sendAudioChunk(id, chunk);
       });
     } else {
       addLog(`Detenida la transmisión de voz hacia el nodo: ${targetId}`);
+      
+      // 3. LE AVISAMOS AL CELULAR QUE DETENGA LA TRANSMISIÓN
+      socketService.sendCommand(targetId, 'stop_speaker');
+
       audioHandler.stopTalking();
     }
   };
