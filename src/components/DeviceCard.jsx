@@ -76,7 +76,7 @@ export default function DeviceCard({ device, frameSrc, onAction, onTalkToggle })
               : 'bg-black text-[#00E5FF] border-[#00e5ff]/30 hover:bg-[#00e5ff]/10'
           }`}
         >
-          📷 CÁM TRASERA
+          📷 CÁ<MARA></MARA> TRASERA
         </button>
 
         <button

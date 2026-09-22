@@ -45,6 +45,8 @@ export class AudioHandler {
         }
     }
 
+    // ojala ps // 
+
     stopListening(socketId) {
         delete this.activeStreams[socketId];
     }
@@ -53,16 +55,22 @@ export class AudioHandler {
     async startTalking(socketId, onAudioCaptured) {
         try {
             this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
             if (!this.audioCtx) {
                 this.audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
             }
 
+            // IMPORTANTE: Asegurar que el contexto de audio esté activo
+            if (this.audioCtx.state === "suspended") {
+                await this.audioCtx.resume();
+            }
+
             this.sourceNode = this.audioCtx.createMediaStreamSource(this.mediaStream);
-            // Usamos ScriptProcessor o AudioWorklet (ScriptProcessor es más compatible de golpe para pruebas rápidas)
             this.processor = this.audioCtx.createScriptProcessor(4096, 1, 1);
 
             this.processor.onaudioprocess = (e) => {
                 const inputData = e.inputBuffer.getChannelData(0);
+                
                 // Convertir Float32 a Int16 PCM
                 const int16Data = new Int16Array(inputData.length);
                 for (let i = 0; i < inputData.length; i++) {
@@ -75,7 +83,16 @@ export class AudioHandler {
             };
 
             this.sourceNode.connect(this.processor);
-            this.processor.connect(this.audioCtx.destination);
+            
+            // Creamos un nodo de ganancia en 0 para evitar que te escuches con eco feo en los parlantes de la PC,
+            // pero manteniendo el flujo activo para que el navegador no apague el procesador.
+            const silenceNode = this.audioCtx.createGain();
+            silenceNode.gain.value = 0;
+            
+            this.processor.connect(silenceNode);
+            silenceNode.connect(this.audioCtx.destination);
+
+            console.log("[Audio] Micrófono de la PC iniciado y transmitiendo...");
         } catch (err) {
             console.error("No se pudo acceder al micrófono de la PC:", err);
             alert("Error al acceder a tu micrófono. Revisa los permisos del navegador.");
