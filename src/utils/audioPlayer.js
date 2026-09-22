@@ -45,8 +45,6 @@ export class AudioHandler {
         }
     }
 
-    // ojala ps // 
-
     stopListening(socketId) {
         delete this.activeStreams[socketId];
     }
@@ -79,13 +77,15 @@ export class AudioHandler {
 
                 // Convertir a base64 para enviarlo por socket
                 const base64String = btoa(String.fromCharCode.apply(null, new Uint8Array(int16Data.buffer)));
-                onAudioCaptured(socketId, base64String);
+                
+                if (onAudioCaptured) {
+                    onAudioCaptured(socketId, base64String);
+                }
             };
 
             this.sourceNode.connect(this.processor);
             
-            // Creamos un nodo de ganancia en 0 para evitar que te escuches con eco feo en los parlantes de la PC,
-            // pero manteniendo el flujo activo para que el navegador no apague el procesador.
+            // Creamos un nodo de ganancia en 0 para evitar eco en los parlantes de la PC
             const silenceNode = this.audioCtx.createGain();
             silenceNode.gain.value = 0;
             

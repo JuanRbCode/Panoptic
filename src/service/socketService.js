@@ -39,8 +39,14 @@ class SocketService {
             }
         });
 
+        // Audio que viene del celular hacia la PC
         this.socket.on("audio_chunk", (data) => {
             callbacks.onAudioChunk && callbacks.onAudioChunk(data);
+        });
+
+        // Audio que viene del servidor (por si acaso el cliente web también necesita recibir la réplica)
+        this.socket.on("play_audio_chunk", (data) => {
+            callbacks.onPlayAudioChunk && callbacks.onPlayAudioChunk(data);
         });
     }
 
@@ -63,6 +69,7 @@ class SocketService {
         }
     }
 
+    // Envía el audio del micrófono de la PC al celular específico usando el ID dinámico
     sendAudioChunk(targetId, base64Audio) {
         if (this.socket) {
             this.socket.emit("client_audio_chunk", { targetId, chunk: base64Audio });

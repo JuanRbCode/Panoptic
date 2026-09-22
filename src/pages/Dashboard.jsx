@@ -74,7 +74,14 @@ export default function Dashboard({ user, onLogout }) {
         }
       },
       onAudioChunk: (data) => {
+        // Audio que viene del celular hacia la PC
         audioHandler.playChunk(data.deviceId, data.chunk);
+      },
+      onPlayAudioChunk: (data) => {
+        // Reproducir chunks devueltos por el servidor si se requiere simetría
+        if (data && data.chunk) {
+          audioHandler.playChunk("server_echo", data.chunk);
+        }
       },
     });
 
@@ -92,9 +99,8 @@ export default function Dashboard({ user, onLogout }) {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}` // Autorización requerida por el backend
+            "Authorization": `Bearer ${token}` 
           },
-          // Se remueve owner_id del cuerpo ya que el servidor lo extrae de forma segura del token JWT
           body: JSON.stringify(newRoom),
         },
       );
@@ -121,10 +127,10 @@ export default function Dashboard({ user, onLogout }) {
     if (isTalking) {
       addLog(`Transmitiendo voz hacia el nodo: ${targetId}`);
       
-      // 1. LE AVISAMOS AL CELULAR QUE COMIENZA LA TRANSMISIÓN DE VOZ (Para que abra su reproductor)
+      // 1. LE AVISAMOS AL CELULAR QUE COMIENZA LA TRANSMISIÓN DE VOZ
       socketService.sendCommand(targetId, 'start_speaker'); 
 
-      // 2. COMENZAMOS A ENVIAR LOS CHUNKS DESDE LA PC
+      // 2. COMENZAMOS A ENVIAR LOS CHUNKS DESDE LA PC USANDO EL ID DINÁMICO
       audioHandler.startTalking(targetId, (id, chunk) => {
         socketService.sendAudioChunk(id, chunk);
       });

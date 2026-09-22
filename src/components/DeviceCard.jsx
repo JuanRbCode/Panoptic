@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { audioHandler } from '../utils/audioPlayer'; // Ajusta la ruta según dónde tengas guardado tu audioHandler
+import socketService from '../utils/socketService';     // Ajusta la ruta según dónde tengas tu socketService
 
-export default function DeviceCard({ device, frameSrc, onAction, onTalkToggle }) {
+export default function DeviceCard({ device, frameSrc, onAction }) {
   const [activeLens, setActiveLens] = useState('back'); // 'back' o 'front'
   const [isCamActive, setIsCamActive] = useState(false);
   const [isMicListening, setIsMicListening] = useState(false); // Micrófono del celular (escuchar audio remoto)
@@ -29,10 +31,23 @@ export default function DeviceCard({ device, frameSrc, onAction, onTalkToggle })
   };
 
   // Control de Voz Bidireccional de la PC (Hablar al celular)
-  const handleToggleTalking = () => {
+  const handleToggleTalking = async () => {
     const newState = !isTalkingToPhone;
     setIsTalkingToPhone(newState);
-    onTalkToggle(deviceTargetId, newState);
+
+    if (newState) {
+      // 1. Avisamos al celular que empiece a preparar su canal si es necesario (opcional)
+      onAction(deviceTargetId, 'start_audio_talk');
+
+      // 2. Iniciamos la captura del micrófono de la PC y enviamos trozos al celular
+      await audioHandler.startTalking(deviceTargetId, (socketId, base64String) => {
+        socketService.sendAudioChunk(socketId, base64String);
+      });
+    } else {
+      // 3. Detenemos la captura de audio local de la PC
+      audioHandler.stopTalking();
+      onAction(deviceTargetId, 'stop_audio_talk');
+    }
   };
 
   return (
@@ -44,7 +59,6 @@ export default function DeviceCard({ device, frameSrc, onAction, onTalkToggle })
           <h3 className="text-xs font-bold text-[#00E5FF] tracking-wider">{device.name}</h3>
           <span className="text-[9px] text-gray-500">IP: {device.ip || 'Local'}</span>
         </div>
-        {/* Mostramos solo un pedazo visualmente en pantalla, pero guardamos el ID completo para los eventos */}
         <span className="text-[10px] bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-[#00e5ff]/30" title={deviceTargetId}>
           ID: {deviceTargetId ? `${deviceTargetId.substring(0, 6)}...` : 'N/A'}
         </span>
@@ -67,7 +81,7 @@ export default function DeviceCard({ device, frameSrc, onAction, onTalkToggle })
       {/* Panel de Botones Independientes */}
       <div className="grid grid-cols-2 gap-2 text-[10px]">
         
-        {/* Controles de Cámara (Trasera / Frontal) */}
+        {/* Controles de Cámara */}
         <button
           onClick={() => handleToggleCamera('back')}
           className={`p-2 rounded border transition font-bold ${
